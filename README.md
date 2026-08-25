@@ -51,3 +51,10 @@ Elementos da interface do Facebook foram deliberadamente ignorados.
 - ao selecionar um terno, aparecem automaticamente camisa e sapato;
 - somente alternativas compatíveis são exibidas;
 - ao trocar uma alternativa, o restante do conjunto é recalculado automaticamente.
+
+
+## MVP 03 — Avatar interativo
+- visualização do look com avatar integrado;
+- botão de troca entre frente e costas;
+- atualização do avatar em tempo real quando o conjunto muda;
+- legenda de cores e peças usadas no look atual.

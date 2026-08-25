@@ -265,6 +265,7 @@ const TYPE_LABELS={shirt:"Camisa",pants:"Calça",shoes:"Sapato",suit:"Terno"};
 const smartState={
   anchorType:"pants",
   anchorId:null,
+  avatarView:"front",
   selections:{shirt:null,pants:null,shoes:null,suit:null}
 };
 
@@ -414,37 +415,154 @@ function renderSmartResult(){
         </div>
         <span class="score-big">${look.score}%</span>
       </div>
-      <div class="current-set">
-        ${order.map(type=>currentPieceCard(type,map[type])).join("")}
-      </div>
 
-      <div class="compatible-area">
-        ${otherTypes.map(type=>{
-          const options=candidateOptions(type);
-          return `<div class="option-group">
-            <div class="option-group-head">
-              <strong>Outras opções de ${TYPE_LABELS[type].toLowerCase()}</strong>
-              <span>${options.length} compatíveis</span>
-            </div>
-            <div class="option-list">
-              ${options.map(({item,score})=>`
-                <button type="button" class="option-card ${smartState.selections[type]===item.id?"selected":""}" data-type="${type}" data-id="${item.id}">
-                  <span class="swatch" style="background:${COLORS[item.color].hex}"></span>
-                  <span class="option-copy">
-                    <strong>${COLORS[item.color].name}</strong>
-                    <small>até ${score}% harmonia</small>
-                  </span>
-                </button>`).join("")}
-            </div>
-          </div>`;
-        }).join("")}
+      <div class="look-stage">
+        ${renderAvatarPanel(look)}
+        <div>
+          <div class="current-set">
+            ${order.map(type=>currentPieceCard(type,map[type])).join("")}
+          </div>
+
+          <div class="compatible-area">
+            ${otherTypes.map(type=>{
+              const options=candidateOptions(type);
+              return `<div class="option-group">
+                <div class="option-group-head">
+                  <strong>Outras opções de ${TYPE_LABELS[type].toLowerCase()}</strong>
+                  <span>${options.length} compatíveis</span>
+                </div>
+                <div class="option-list">
+                  ${options.map(({item,score})=>`
+                    <button type="button" class="option-card ${smartState.selections[type]===item.id?"selected":""}" data-type="${type}" data-id="${item.id}">
+                      <span class="swatch" style="background:${COLORS[item.color].hex}"></span>
+                      <span class="option-copy">
+                        <strong>${COLORS[item.color].name}</strong>
+                        <small>até ${score}% harmonia</small>
+                      </span>
+                    </button>`).join("")}
+                </div>
+              </div>`;
+            }).join("")}
+          </div>
+          <div class="builder-tip">Ao trocar uma opção, o restante do conjunto é recalculado automaticamente. O avatar acima acompanha as escolhas em tempo real.</div>
+        </div>
       </div>
-      <div class="builder-tip">Ao trocar uma opção, o terceiro elemento do conjunto é recalculado automaticamente para preservar a compatibilidade.</div>
     </div>`;
 
   root.querySelectorAll(".option-card").forEach(btn=>btn.addEventListener("click",()=>{
     chooseAlternative(btn.dataset.type,btn.dataset.id);
   }));
+  root.querySelectorAll(".avatar-view-btn").forEach(btn=>btn.addEventListener("click",()=>{
+    smartState.avatarView = btn.dataset.view;
+    renderSmartBuilder();
+    renderOutfits();
+  }));
+}
+
+
+function colorHex(name){
+  return COLORS[name]?.hex || "#999";
+}
+function shadeColor(hex, percent){
+  let h = hex.replace("#","");
+  let r=parseInt(h.substring(0,2),16), g=parseInt(h.substring(2,4),16), b=parseInt(h.substring(4,6),16);
+  r=Math.min(255,Math.max(0,Math.round(r*(100+percent)/100)));
+  g=Math.min(255,Math.max(0,Math.round(g*(100+percent)/100)));
+  b=Math.min(255,Math.max(0,Math.round(b*(100+percent)/100)));
+  return "#" + [r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+
+function renderAvatarSVG(look, view="front"){
+  const map=lookMap(look);
+  const shirt = map.shirt ? colorHex(map.shirt.color) : "#c8d2da";
+  const pants = map.pants ? colorHex(map.pants.color) : "#56616f";
+  const shoes = map.shoes ? colorHex(map.shoes.color) : "#2a2c2f";
+  const suit = map.suit ? colorHex(map.suit.color) : null;
+  const jacket = suit || null;
+  const tie = suit ? shadeColor(shirt,-28) : "#d6dce0";
+  const skin = "#d9b18f";
+  const hair = "#2d231e";
+
+  if(view==="back"){
+    return `
+    <svg class="avatar-svg" viewBox="0 0 240 420" aria-label="Avatar costas">
+      <rect x="0" y="0" width="240" height="420" rx="18" fill="transparent"/>
+      <ellipse cx="120" cy="392" rx="58" ry="12" fill="rgba(0,0,0,.24)"/>
+      <circle cx="120" cy="52" r="24" fill="${skin}"/>
+      <path d="M96 50c3-17 17-27 24-27s21 10 24 27c-8-8-17-12-24-12s-16 4-24 12z" fill="${hair}"/>
+      <path d="M86 87q34-20 68 0v24q0 8-7 14l-8 7h-38l-8-7q-7-6-7-14z" fill="${jacket||shirt}"/>
+      <path d="M85 109l-16 86 21 8 17-73v-10z" fill="${jacket||shirt}"/>
+      <path d="M155 109l16 86-21 8-17-73v-10z" fill="${jacket||shirt}"/>
+      ${jacket ? `<path d="M101 100h38v92h-38z" fill="${shadeColor(jacket,8)}"/>` : `<path d="M101 100h38v92h-38z" fill="${shadeColor(shirt,-4)}"/>`}
+      <path d="M104 192h32l8 60H96z" fill="${pants}"/>
+      <path d="M96 252l-10 120h28l9-118z" fill="${shadeColor(pants,-6)}"/>
+      <path d="M144 252l10 120h-28l-9-118z" fill="${shadeColor(pants,-10)}"/>
+      <rect x="80" y="370" width="48" height="16" rx="8" fill="${shoes}"/>
+      <rect x="112" y="370" width="48" height="16" rx="8" fill="${shoes}"/>
+    </svg>`;
+  }
+
+  return `
+  <svg class="avatar-svg" viewBox="0 0 240 420" aria-label="Avatar frente">
+    <rect x="0" y="0" width="240" height="420" rx="18" fill="transparent"/>
+    <ellipse cx="120" cy="392" rx="58" ry="12" fill="rgba(0,0,0,.24)"/>
+    <circle cx="120" cy="52" r="24" fill="${skin}"/>
+    <path d="M96 50c3-17 17-27 24-27s21 10 24 27c-8-8-17-12-24-12s-16 4-24 12z" fill="${hair}"/>
+    <path d="M84 88q36-21 72 0v16l-9 12h-54l-9-12z" fill="${jacket||shirt}"/>
+    <path d="M86 104l-18 88 22 8 14-62 4-20z" fill="${jacket||shirt}"/>
+    <path d="M154 104l18 88-22 8-14-62-4-20z" fill="${jacket||shirt}"/>
+    ${jacket ? `
+      <path d="M96 104l24 32 24-32v118h-48z" fill="${shadeColor(jacket,-3)}"/>
+      <path d="M116 106h8l7 44-11 18-11-18z" fill="${tie}"/>
+      <path d="M104 104l16 26-12 14-18-38z" fill="${shadeColor(jacket,-12)}"/>
+      <path d="M136 104l-16 26 12 14 18-38z" fill="${shadeColor(jacket,-12)}"/>
+    ` : `
+      <path d="M96 104h48v118H96z" fill="${shadeColor(shirt,-2)}"/>
+      <path d="M108 92l12 15 12-15-12 28z" fill="${shadeColor(shirt,10)}"/>
+      <path d="M118 106h4v108h-4z" fill="rgba(255,255,255,.18)"/>
+    `}
+    <path d="M102 222h36l8 30H94z" fill="${pants}"/>
+    <path d="M94 252l-8 120h28l8-118z" fill="${shadeColor(pants,-4)}"/>
+    <path d="M146 252l8 120h-28l-8-118z" fill="${shadeColor(pants,-8)}"/>
+    <rect x="80" y="370" width="48" height="16" rx="8" fill="${shoes}"/>
+    <rect x="112" y="370" width="48" height="16" rx="8" fill="${shoes}"/>
+  </svg>`;
+}
+
+function renderAvatarLegend(look){
+  const map = lookMap(look);
+  const entries = [];
+  if(map.suit) entries.push({type:"Terno", item:map.suit});
+  if(map.shirt) entries.push({type:"Camisa", item:map.shirt});
+  if(map.pants) entries.push({type:"Calça", item:map.pants});
+  if(map.shoes) entries.push({type:"Sapato", item:map.shoes});
+  return `<div class="avatar-legend">${
+    entries.map(({type,item})=>`
+      <div class="legend-row">
+        <span class="swatch" style="background:${colorHex(item.color)}"></span>
+        <div><strong>${type}</strong><small>${COLORS[item.color].name}</small></div>
+        <small>${owned.has(item.id)?"No armário":"Sugestão"}</small>
+      </div>`).join("")
+  }</div>`;
+}
+
+function renderAvatarPanel(look){
+  return `
+    <aside class="avatar-panel">
+      <div class="avatar-panel-head">
+        <strong>Visualização do look</strong>
+        <div class="avatar-view-tabs">
+          <button type="button" class="avatar-view-btn ${smartState.avatarView!=="back"?"active":""}" data-view="front">Frente</button>
+          <button type="button" class="avatar-view-btn ${smartState.avatarView==="back"?"active":""}" data-view="back">Costas</button>
+        </div>
+      </div>
+      <div class="avatar-wrap">
+        ${renderAvatarSVG(look, smartState.avatarView==="back" ? "back" : "front")}
+      </div>
+      ${renderAvatarLegend(look)}
+      <div class="avatar-tip">O avatar reage às suas escolhas e ajuda a visualizar o conjunto antes de decidir.</div>
+    </aside>
+  `;
 }
 
 function renderSmartBuilder(){
@@ -461,6 +579,7 @@ document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>
 
 document.getElementById("resetBuilder").addEventListener("click",()=>{
   smartState.anchorId=null;
+  smartState.avatarView="front";
   smartState.selections={shirt:null,pants:null,shoes:null,suit:null};
   renderSmartBuilder();
   renderOutfits();
