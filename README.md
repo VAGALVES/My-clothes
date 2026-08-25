@@ -52,9 +52,10 @@ Elementos da interface do Facebook foram deliberadamente ignorados.
 - somente alternativas compatíveis são exibidas;
 - ao trocar uma alternativa, o restante do conjunto é recalculado automaticamente.
 
+## MVP 03 — Manequim interativo
+- o Montador Inteligente agora exibe um manequim estilizado com o conjunto atual (torso/terno, pernas, sapatos);
+- tocar numa peça do manequim rola até o grupo de alternativas compatíveis daquela peça;
+- o manequim é recalculado automaticamente a cada troca de peça, junto com o resto do conjunto.
 
-## MVP 03 — Avatar interativo
-- visualização do look com avatar integrado;
-- botão de troca entre frente e costas;
-- atualização do avatar em tempo real quando o conjunto muda;
-- legenda de cores e peças usadas no look atual.
+### Correção
+- `refreshAll()` era chamada mas nunca havia sido definida no MVP 02, o que interrompia a execução do script após o carregamento do Gerador e deixava as abas "Meu armário" e "O que falta" sempre vazias, além de impedir o registro do service worker e o botão de instalação do PWA. A função foi implementada.
