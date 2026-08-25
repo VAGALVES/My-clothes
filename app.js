@@ -104,26 +104,80 @@ function svgFor(item){
 
 // Manequim interativo: renderiza o conjunto atual num boneco estilizado.
 // Cada peça é clicável e chama scrollToOptionGroup para focar as alternativas compatíveis.
+function shadeHex(hex,percent){
+  const num=parseInt(hex.replace("#",""),16);
+  const clamp=v=>Math.min(255,Math.max(0,v));
+  const r=clamp((num>>16)+Math.round(2.55*percent));
+  const g=clamp(((num>>8)&0xff)+Math.round(2.55*percent));
+  const b=clamp((num&0xff)+Math.round(2.55*percent));
+  return "#"+(0x1000000+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+
+function fabricGradient(id,hex){
+  const light=shadeHex(hex,22), dark=shadeHex(hex,-16);
+  return `<linearGradient id="${id}" x1="0" y1="0" x2="0.35" y2="1">
+    <stop offset="0%" stop-color="${light}"/>
+    <stop offset="45%" stop-color="${hex}"/>
+    <stop offset="100%" stop-color="${dark}"/>
+  </linearGradient>`;
+}
+
 function mannequinMarkup(map,kind){
-  const stroke="rgba(255,255,255,.16)";
-  const woodTop="#8a5a34", woodBase="#6e4526";
+  const edge="var(--mq-edge)", fold="var(--mq-fold)", shine="var(--mq-shine)";
+  const woodTop="#9a6a3f", woodMid="#8a5a34", woodBase="#6e4526";
   const shoesHex=COLORS[map.shoes.color].hex;
   const legsHex = kind==="suit" ? COLORS[map.suit.color].hex : COLORS[map.pants.color].hex;
   const torsoHex = kind==="suit" ? COLORS[map.suit.color].hex : COLORS[map.shirt.color].hex;
   const collarHex = kind==="suit" ? COLORS[map.shirt.color].hex : null;
   const legsType = kind==="suit" ? "suit" : "pants";
   const torsoType = kind==="suit" ? "suit" : "shirt";
+  const uid = Math.random().toString(36).slice(2,7);
+  const gTorso=`mqT${uid}`, gLegs=`mqL${uid}`, gShoes=`mqS${uid}`;
 
   return `<svg viewBox="0 0 120 300" class="mannequin" role="group" aria-label="Manequim do conjunto atual">
-    <ellipse cx="60" cy="22" rx="15" ry="17" fill="${woodTop}" stroke="${stroke}" stroke-width="1"/>
+    <defs>
+      ${fabricGradient(gTorso,torsoHex)}
+      ${fabricGradient(gLegs,legsHex)}
+      ${fabricGradient(gShoes,shoesHex)}
+      <radialGradient id="mqWood${uid}" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="${woodTop}"/>
+        <stop offset="60%" stop-color="${woodMid}"/>
+        <stop offset="100%" stop-color="${woodBase}"/>
+      </radialGradient>
+      <radialGradient id="mqPlinth${uid}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(0,0,0,.30)"/>
+        <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+      </radialGradient>
+    </defs>
+
+    <ellipse cx="60" cy="292" rx="34" ry="7" fill="url(#mqPlinth${uid})"/>
+
+    <ellipse cx="60" cy="22" rx="15" ry="17" fill="url(#mqWood${uid})" stroke="${edge}" stroke-width="1"/>
     <rect x="54" y="12" width="12" height="6" rx="2" fill="${woodBase}"/>
     <rect x="55" y="37" width="10" height="10" fill="${woodBase}"/>
-    <path class="mq-part" data-type="${torsoType}" d="M27 51 L46 44 L60 55 L74 44 L93 51 L88 100 L92 141 L28 141 L32 100 Z" fill="${torsoHex}" stroke="${stroke}" stroke-width="1.5"/>
-    ${collarHex?`<path class="mq-part" data-type="shirt" d="M49 45 L60 62 L71 45 L60 52 Z" fill="${collarHex}" stroke="${stroke}" stroke-width="1"/>`:""}
-    <path class="mq-part" data-type="${legsType}" d="M32 141 L59 141 L55 268 L38 268 Z" fill="${legsHex}" stroke="${stroke}" stroke-width="1.5"/>
-    <path class="mq-part" data-type="${legsType}" d="M61 141 L88 141 L82 268 L65 268 Z" fill="${legsHex}" stroke="${stroke}" stroke-width="1.5"/>
-    <path class="mq-part" data-type="shoes" d="M30 268 L56 268 L58 280 Q58 286 50 286 L26 286 Q20 286 22 280 Z" fill="${shoesHex}" stroke="${stroke}" stroke-width="1.5"/>
-    <path class="mq-part" data-type="shoes" d="M64 268 L90 268 L92 280 Q92 286 84 286 L60 286 Q54 286 56 280 Z" fill="${shoesHex}" stroke="${stroke}" stroke-width="1.5"/>
+
+    <path class="mq-part" data-type="${torsoType}" d="M27 51 L46 44 L60 55 L74 44 L93 51 L88 100 L92 141 L28 141 L32 100 Z" fill="url(#${gTorso})" stroke="${edge}" stroke-width="1.5"/>
+    ${kind==="suit"?`
+      <path d="M46 44 L60 55 L60 96 L44 100 Z" fill="rgba(0,0,0,.10)"/>
+      <path d="M74 44 L60 55 L60 96 L76 100 Z" fill="rgba(255,255,255,.08)"/>
+      <circle cx="60" cy="104" r="2" fill="${shadeHex(torsoHex,-30)}"/>
+      <circle cx="60" cy="116" r="2" fill="${shadeHex(torsoHex,-30)}"/>
+      <circle cx="60" cy="128" r="2" fill="${shadeHex(torsoHex,-30)}"/>
+    `:`
+      <path d="M46 44 L60 55 L60 138 L46 138 Z" fill="rgba(0,0,0,.06)"/>
+      <path d="M74 44 L60 55 L60 138 L74 138 Z" fill="rgba(255,255,255,.06)"/>
+    `}
+    ${collarHex?`<path class="mq-part" data-type="shirt" d="M49 45 L60 62 L71 45 L60 52 Z" fill="${collarHex}" stroke="${edge}" stroke-width="1"/>`:""}
+
+    <path class="mq-part" data-type="${legsType}" d="M32 141 L59 141 L55 268 L38 268 Z" fill="url(#${gLegs})" stroke="${edge}" stroke-width="1.5"/>
+    <path d="M45.5 145 L42 266" stroke="${fold}" stroke-width="1"/>
+    <path class="mq-part" data-type="${legsType}" d="M61 141 L88 141 L82 268 L65 268 Z" fill="url(#${gLegs})" stroke="${edge}" stroke-width="1.5"/>
+    <path d="M74.5 145 L78 266" stroke="${fold}" stroke-width="1"/>
+
+    <path class="mq-part" data-type="shoes" d="M30 268 L56 268 L58 280 Q58 286 50 286 L26 286 Q20 286 22 280 Z" fill="url(#${gShoes})" stroke="${edge}" stroke-width="1.5"/>
+    <path d="M32 271 Q40 268 50 271" stroke="${shine}" stroke-width="1" fill="none"/>
+    <path class="mq-part" data-type="shoes" d="M64 268 L90 268 L92 280 Q92 286 84 286 L60 286 Q54 286 56 280 Z" fill="url(#${gShoes})" stroke="${edge}" stroke-width="1.5"/>
+    <path d="M66 271 Q74 268 84 271" stroke="${shine}" stroke-width="1" fill="none"/>
   </svg>`;
 }
 
@@ -526,17 +580,49 @@ renderGuide();
 renderSmartBuilder();
 refreshAll();
 
-let deferredPrompt;
+// Instalação como PWA.
+// Se o app já roda em modo standalone (já instalado), não mostra nenhum botão.
+function isStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+}
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
 const installBtn=document.getElementById("installBtn");
-window.addEventListener("beforeinstallprompt",e=>{
-  e.preventDefault(); deferredPrompt=e; installBtn.classList.remove("hidden");
-});
-installBtn.addEventListener("click",async()=>{
-  if(!deferredPrompt) return;
-  deferredPrompt.prompt(); await deferredPrompt.userChoice;
-  deferredPrompt=null; installBtn.classList.add("hidden");
-});
+const iosInstallBtn=document.getElementById("iosInstallBtn");
+const iosInstallTip=document.getElementById("iosInstallTip");
+const iosTipClose=document.getElementById("iosTipClose");
+
+if(!isStandalone()){
+  if(isIOS){
+    // Safari não dispara beforeinstallprompt: mostramos o botão direto e explicamos o passo a passo.
+    iosInstallBtn.classList.remove("hidden");
+    iosInstallBtn.addEventListener("click",()=>iosInstallTip.classList.remove("hidden"));
+    iosTipClose.addEventListener("click",()=>iosInstallTip.classList.add("hidden"));
+  }else{
+    let deferredPrompt;
+    window.addEventListener("beforeinstallprompt",e=>{
+      e.preventDefault(); deferredPrompt=e; installBtn.classList.remove("hidden");
+    });
+    installBtn.addEventListener("click",async()=>{
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt(); await deferredPrompt.userChoice;
+      deferredPrompt=null; installBtn.classList.add("hidden");
+    });
+    window.addEventListener("appinstalled",()=>installBtn.classList.add("hidden"));
+  }
+}
 
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
+
+// Toggle de tema claro/escuro (o tema inicial já foi aplicado no <head> para evitar flash).
+const themeToggle=document.getElementById("themeToggle");
+themeToggle.addEventListener("click",()=>{
+  const next = document.documentElement.dataset.theme==="light" ? "dark" : "light";
+  document.documentElement.dataset.theme = next;
+  const meta=document.getElementById("metaThemeColor");
+  if(meta) meta.setAttribute("content", next==="light" ? "#f2e9d8" : "#0e1621");
+  try{ localStorage.setItem("closetmatch-theme", next); }catch(e){}
+});
+

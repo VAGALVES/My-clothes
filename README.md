@@ -59,3 +59,21 @@ Elementos da interface do Facebook foram deliberadamente ignorados.
 
 ### Correção
 - `refreshAll()` era chamada mas nunca havia sido definida no MVP 02, o que interrompia a execução do script após o carregamento do Gerador e deixava as abas "Meu armário" e "O que falta" sempre vazias, além de impedir o registro do service worker e o botão de instalação do PWA. A função foi implementada.
+
+## MVP 04 — Realismo do manequim e tema claro/escuro
+- Manequim com tecido em gradiente (efeito de volume/luz), vinco na calça, lapelas e botões no terno, brilho no sapato e sombra de plinto — sem depender de geração de imagem por IA (que exigiria API paga e backend, incompatível com o deploy estático atual).
+- Toggle de tema claro/escuro no topo, com paleta clara desenhada com intenção (marfim/bronze, não um "inverter cores" genérico), persistido em localStorage e aplicado antes do primeiro paint (sem flash).
+- Todo o CSS foi migrado para tokens (`--surface-*`, `--accent*`, `--line*` etc.) para que o tema afete o app inteiro, não só a superfície.
+
+### Nota sobre realismo fotográfico
+Gerar uma imagem fotorrealista por combinação (como nas referências) exige uma API de geração de imagem com custo por chamada e um backend — isso rompe a arquitetura estática (GitHub → Netlify, sem servidor) do projeto atual. Fica como possível variante premium futura, não como base do app.
+
+## MVP 05 — PWA instalável de verdade
+O manifest e o service worker já existiam no export, mas incompletos: sem `icons` o Chrome/Android não oferece instalação nenhuma, e sem tratamento de iOS o Safari (que não dispara `beforeinstallprompt`) deixava o iPhone sem qualquer caminho.
+
+- Ícones gerados em 512/192/apple-touch-icon/favicon a partir de um SVG on-brand (não são placeholders).
+- `manifest.json` completo: `icons` (any + maskable), `id`, `scope`, `categories`, `lang`.
+- `sw.js`: versionamento de cache (`v3`), limpeza de caches antigos no `activate` (o v2 nunca limpava — acumularia cache para sempre a cada deploy), fallback offline para `index.html` em navegação.
+- Android/Chrome: botão "Instalar app" só aparece quando o navegador libera o prompt nativo (`beforeinstallprompt`).
+- iOS/Safari: como não existe prompt nativo, o botão aparece direto e abre um tutorial curto (Compartilhar → Adicionar à Tela de Início).
+- Se o app já estiver rodando instalado (modo standalone), nenhum botão de instalação aparece.
