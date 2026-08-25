@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0e1621" />
+  <meta name="description" content="ClosetMatch — combinações inteligentes para um guarda-roupa masculino versátil." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>ClosetMatch</title>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <span class="eyebrow">GUARDA-ROUPA INTELIGENTE</span>
+      <h1>ClosetMatch</h1>
+    </div>
+    <button id="installBtn" class="ghost hidden" type="button">Instalar</button>
+  </header>
+
+  <main>
+    <section class="hero panel">
+      <div class="hero-copy">
+        <span class="pill">MVP 01</span>
+        <h2>Monte looks com o que você já tem.</h2>
+        <p>Combine camisa, calça, sapato e terno por cor, formalidade e ocasião. O app também mostra o que vale comprar para multiplicar suas combinações.</p>
+      </div>
+      <div class="hero-stat">
+        <strong id="comboCount">0</strong>
+        <span>combinações possíveis</span>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="Seções">
+      <button class="tab active" data-tab="gerador">Gerador</button>
+      <button class="tab" data-tab="armario">Meu armário</button>
+      <button class="tab" data-tab="compras">O que falta</button>
+      <button class="tab" data-tab="guia">Guia</button>
+    </nav>
+
+    <section id="gerador" class="tabpage active">
+      <div class="panel smart-builder">
+        <div class="builder-head">
+          <div>
+            <span class="eyebrow">MONTADOR INTELIGENTE</span>
+            <h3>Escolha uma peça. O restante aparece automaticamente.</h3>
+            <p class="muted">A peça inicial vira a âncora do look. Todas as alternativas exibidas continuam compatíveis com ela e com o conjunto atual.</p>
+          </div>
+          <button id="resetBuilder" class="ghost" type="button">Recomeçar</button>
+        </div>
+
+        <div class="builder-step">
+          <span class="step-number">1</span>
+          <div class="step-content">
+            <strong>Qual peça você quer usar como ponto de partida?</strong>
+            <div id="anchorTypes" class="type-tabs" aria-label="Tipo da peça inicial"></div>
+            <div id="anchorItems" class="anchor-items" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div id="smartResult" class="smart-result">
+          <div class="builder-empty">
+            <strong>Comece escolhendo uma peça acima.</strong>
+            <span>Ex.: selecione uma calça azul-marinho e o app mostrará automaticamente as melhores camisas e sapatos.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">MAIS POSSIBILIDADES</span>
+          <h3>Outras combinações com sua peça inicial</h3>
+        </div>
+        <span id="resultCount" class="muted"></span>
+      </div>
+      <div id="outfitGrid" class="outfit-grid"></div>
+    </section>
+
+    <section id="armario" class="tabpage">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">INVENTÁRIO</span>
+          <h3>Meu armário</h3>
+        </div>
+        <button id="selectStarter" class="ghost" type="button">Kit essencial</button>
+      </div>
+      <p class="muted intro">Marque as peças que você possui. As escolhas ficam salvas neste aparelho.</p>
+      <div id="wardrobeSections"></div>
+    </section>
+
+    <section id="compras" class="tabpage">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">OTIMIZAÇÃO</span>
+          <h3>O que vale comprar</h3>
+        </div>
+      </div>
+      <p class="muted intro">Prioridade calculada pela quantidade de novas combinações que cada peça pode liberar usando o seu armário atual.</p>
+      <div id="shoppingList" class="shopping-list"></div>
+    </section>
+
+    <section id="guia" class="tabpage">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">REGRAS VISUAIS</span>
+          <h3>Guia rápido de combinações</h3>
+        </div>
+      </div>
+      <div id="guideGrid" class="guide-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>ClosetMatch • combinações inspiradas nas referências enviadas, sem elementos da interface do Facebook.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

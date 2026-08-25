@@ -1,0 +1,9 @@
+{
+  "name": "ClosetMatch",
+  "short_name": "ClosetMatch",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#09111a",
+  "theme_color": "#0e1621",
+  "description": "Combinações inteligentes para um guarda-roupa masculino versátil."
+}
